@@ -1,0 +1,9 @@
+services:
+  target:
+    build: .
+    container_name: archonx-lab
+    ports:
+      - "127.0.0.1:18110:80"
+    volumes:
+      - ../../out:/out
+    restart: unless-stopped
