@@ -1,9 +1,9 @@
-"""ArchonX branding — rainbow banner, phase-aware palette, timestamped fields.
+"""ArchonX branding — solid-colour banner, phase-aware palette, timestamped fields.
 
 Design rules (locked):
   1. Always verbose. There is no -v flag. Every field prints.
   2. Every log line starts with [HH:MM:SS.mmm].
-  3. Banner is rainbow on colour terminals, plain otherwise.
+  3. Banner is solid hacker-green on colour terminals, plain otherwise.
   4. Runtime palette is phase-aware: green for discovery phases 0-2,
      red (DeadLock) for the exploitation phase 3 and shell phase 4.
   5. NO_COLOR / FORCE_COLOR env vars honoured. No --theme flag.
@@ -58,47 +58,6 @@ def _use_color() -> bool:
         return sys.stdout.isatty()
     except (AttributeError, ValueError):
         return False
-
-
-# ─── rainbow ─────────────────────────────────────────────────────────────
-def _hsl_to_ansi(hue: float) -> str:
-    """HSL(hue, 1.0, 0.55) → nearest 256-colour ANSI escape."""
-    hue = hue % 360
-    h = hue / 60.0
-    c = 0.9
-    x = c * (1 - abs(h % 2 - 1))
-    m = 0.10
-
-    if   h < 1: r, g, b = c, x, 0
-    elif h < 2: r, g, b = x, c, 0
-    elif h < 3: r, g, b = 0, c, x
-    elif h < 4: r, g, b = 0, x, c
-    elif h < 5: r, g, b = x, 0, c
-    else:       r, g, b = c, 0, x
-
-    ri = max(0, min(5, int((r + m) * 5.99)))
-    gi = max(0, min(5, int((g + m) * 5.99)))
-    bi = max(0, min(5, int((b + m) * 5.99)))
-    return f"\x1b[38;5;{16 + 36 * ri + 6 * gi + bi}m"
-
-
-def _rainbow(text: str, hue_step: float = 6.0, line_step: float = 60.0) -> str:
-    """Rainbow gradient across text. Hue advances per character; newlines
-    shift the base hue for a diagonal wash."""
-    if not _use_color():
-        return text
-    out = []
-    hue = 0.0
-    for ch in text:
-        if ch == "\n":
-            out.append(ch)
-            hue += line_step
-        else:
-            out.append(_hsl_to_ansi(hue))
-            out.append(ch)
-            hue += hue_step
-    out.append(RESET)
-    return "".join(out)
 
 
 # ─── palettes ────────────────────────────────────────────────────────────
@@ -197,9 +156,9 @@ class Log:
 
     # ── banner ───────────────────────────────────────────────────────
     def banner(self, subtitle: bool = True) -> None:
-        print(_rainbow(BANNER_ART), end="")
+        p = self.state.palette
+        print(f"{p.primary}{BANNER_ART}{RESET}", end="")
         if subtitle:
-            p = self.state.palette
             rule = MARK_RULE * len(BRAND_NAME)
             print(f"{p.secondary}              {BRAND_NAME}{RESET}")
             print(f"{p.secondary}              {rule}{RESET}")
