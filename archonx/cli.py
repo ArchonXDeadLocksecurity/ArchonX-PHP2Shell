@@ -443,25 +443,23 @@ def _run_shell(cfg: TransportConfig, path: str, profile: Profile,
 
     log.ok("interactive shell ready (file mode, ~5s per command)")
     print()
-    try:
-        while True:
-            try:
-                cmd = input(log.prompt("/var/www/html")).strip()
-            except (EOFError, KeyboardInterrupt):
-                print()
-                break
-            if not cmd:
-                continue
-            if cmd in ("exit", "quit", "q"):
-                break
-            ok, output, _ = _chain_file(cfg, path, profile, cmd, retries,
-                                        out_dir)
-            if ok:
-                if output:
-                    print(output)
-            else:
-                log.error("chain failed")
-                break
+    while True:
+        try:
+            cmd = input(log.prompt("/var/www/html")).strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not cmd:
+            continue
+        if cmd in ("exit", "quit", "q"):
+            break
+        ok, output, _ = _chain_file(cfg, path, profile, cmd, retries, out_dir)
+        if ok:
+            if output:
+                print(output)
+        else:
+            log.error("chain failed")
+            break
 
 
 def _run_reverse(cfg: TransportConfig, path: str, profile: Profile,
